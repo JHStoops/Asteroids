@@ -1,20 +1,27 @@
 <template>
   <div id="app">
      <h1>Asteroids</h1>
-     <div id="canvas" v-on:mousemove="updateXY">
+     <div id="canvas" v-on:mousemove="updateXY" v-on:click="shoot">
         <img id="spaceship" v-bind:src="spaceship.img" :style="spaceshipAngle" />
      </div>
   </div>
 </template>
 
 <script>
+import lazer from './Components/lazer.vue';
+
 class Lazer {
    constructor(x, y, mouseX, mouseY){
       this.x = x;
       this.y = y;
-      var tangens = Math.atan2((this.y - mouseY), (this.x - mouseX));
-      this.velocityX = tangens;
-      this.velocityY = 1 - tangens;
+
+      //Calculate velocity
+      var hypotenuse = Math.sqrt((x - mouseX)**2 + (y - mouseY)**2);
+      this.velocityX = (mouseX - x) / hypotenuse;
+      this.velocityY = (mouseY - y) / hypotenuse;
+
+      //Create DOM element
+
    }
 
    display(){
@@ -23,10 +30,17 @@ class Lazer {
       console.log('this.velocityX = ' + this.velocityX);
       console.log('this.velocityY = ' + this.velocityY);
    }
+
+   destroy(){
+      //Remove DOM element
+   }
 }
 
 export default {
   name: 'app',
+  components: {
+     'lazer': lazer
+  },
   data () {
     return {
       spaceship: {
@@ -35,9 +49,7 @@ export default {
          img: 'src/img/spaceship.png',
          angle: 0
       },
-      lazers: [
-         //{x: 0, y: 0, velocityX: 0, velocityY: 0}
-      ],
+      lazers: [],
       asteroids: []
     }
    },
@@ -46,8 +58,11 @@ export default {
          this.spaceship.angle =
             (Math.atan2((this.spaceship.y - e.offsetY), (this.spaceship.x - e.offsetX)) * 180 / Math.PI) - 90;
       },
-      moveLazers: function(){
-         this.lazers.map()
+      shoot: function(e){
+         var l = new Lazer(this.spaceship.x, this.spaceship.y, e.offsetX, e.offsetY);
+         l.display();
+         this.lazers.push(l);
+         console.log(this.lazers.length)
       }
    },
    computed: {
