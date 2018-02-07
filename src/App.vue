@@ -3,15 +3,15 @@
      <h1>Asteroids</h1>
      <div id="canvas" v-on:mousemove="updateXY" v-on:click="shoot">
         <img id="spaceship" v-bind:src="spaceship.img" :style="spaceshipAngle" />
+        <div v-for="lazer of lazers" v-model="lazers" v-bind:id="lazer.id" v-bind:style="{ left: lazer.x + 'px', top: lazer.y + 'px'}"></div>
      </div>
   </div>
 </template>
 
 <script>
-import lazer from './Components/lazer.vue';
-
 class Lazer {
-   constructor(x, y, mouseX, mouseY){
+   constructor(id, x, y, mouseX, mouseY){
+      this.id = 'lazer' + id;
       this.x = x;
       this.y = y;
 
@@ -20,8 +20,17 @@ class Lazer {
       this.velocityX = (mouseX - x) / hypotenuse;
       this.velocityY = (mouseY - y) / hypotenuse;
 
-      //Create DOM element
+      let intervalID = setInterval(() => {
+         this.x += this.velocityX;
+         this.y += this.velocityY;
+         console.log(this.x);
+         if (this.x > 600 || this.x < 0 || this.y > 600 || this.y < 0) {
+            clearInterval(intervalID);
+            document.getElementById(this.id).remove();
+         }
+      }, 1);
 
+      //Create DOM element
    }
 
    display(){
@@ -38,19 +47,17 @@ class Lazer {
 
 export default {
   name: 'app',
-  components: {
-     'lazer': lazer
-  },
-  data () {
+  data() {
     return {
       spaceship: {
-         x: 300,
-         y: 300,
+         x: 300.0,
+         y: 300.0,
          img: 'src/img/spaceship.png',
          angle: 0
       },
       lazers: [],
-      asteroids: []
+      asteroids: [],
+      IDCounter: 0
     }
    },
    methods: {
@@ -59,10 +66,9 @@ export default {
             (Math.atan2((this.spaceship.y - e.offsetY), (this.spaceship.x - e.offsetX)) * 180 / Math.PI) - 90;
       },
       shoot: function(e){
-         var l = new Lazer(this.spaceship.x, this.spaceship.y, e.offsetX, e.offsetY);
+         var l = new Lazer(this.IDCounter++, this.spaceship.x, this.spaceship.y, e.offsetX, e.offsetY);
          l.display();
          this.lazers.push(l);
-         console.log(this.lazers.length)
       }
    },
    computed: {
@@ -77,6 +83,7 @@ export default {
 
 <style>
    #canvas {
+      position: relative;
       min-width: 600px;
       min-height: 600px;
       max-width: 600px;
@@ -86,10 +93,16 @@ export default {
       padding: 0
    }
    #spaceship {
-      position: relative;
+      position: absolute;
       width: 20px;
       height: 32px;
       left: 300px;
       top: 300px;
+   }
+   [id^='lazer'] {
+      position: absolute;
+      background-color: #ffffff;
+      width: 10px;
+      height: 10px;
    }
 </style>
